@@ -1,8 +1,9 @@
 #include "async.h"
-#include<stdlib.h>
-#include<stdbool.h>
-#include<sys/time.h>
-#include<unistd.h>
+#include<stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 struct AsyncTask {
     TaskCallback callback;
@@ -16,6 +17,7 @@ struct AsyncTask {
 struct AsyncLib {
     AsyncTask **tasks;
     size_t task_count;
+    size_t capacity;    // Current capacity of the task array
     bool running;
 };
 
@@ -29,8 +31,14 @@ AsyncLib *async_lib_init(void) {
     AsyncLib *lib = malloc(sizeof(AsyncLib));
     if (!lib) return NULL;
 
-    lib->tasks = NULL;
+    lib->tasks = malloc(sizeof(AsyncTask *) * 10); // Initial capacity of 10 tasks
+    if (!lib->tasks) {
+        free(lib);
+        return NULL;
+    }
+
     lib->task_count = 0;
+    lib->capacity = 10;  // Initial capacity
     lib->running = false;
     return lib;
 }
@@ -45,8 +53,21 @@ void async_lib_cleanup(AsyncLib *lib) {
     free(lib);
 }
 
+static void resize_task_array(AsyncLib *lib) {
+    lib->capacity = lib->capacity + (lib->capacity / 2); // Increase capacity by 1.5x
+    lib->tasks = realloc(lib->tasks, sizeof(AsyncTask *) * lib->capacity);
+    if (!lib->tasks) {
+        perror("Failed to resize task array");
+        exit(1);
+    }
+}
+
 AsyncTask *async_add_task(AsyncLib *lib, TaskCallback cb, void *arg, uint64_t delay_ms, bool periodic) {
     if (!lib || !cb) return NULL;
+
+    if (lib->task_count == lib->capacity) {
+        resize_task_array(lib);  // Resize the task array if full
+    }
 
     AsyncTask *task = malloc(sizeof(AsyncTask));
     if (!task) return NULL;
@@ -57,17 +78,9 @@ AsyncTask *async_add_task(AsyncLib *lib, TaskCallback cb, void *arg, uint64_t de
     task->interval = periodic ? delay_ms : 0;
     task->active = true;
 
-    // Add the task to the library
-    lib->tasks = realloc(lib->tasks, sizeof(AsyncTask *) * (lib->task_count + 1));
-    if (!lib->tasks) {
-        free(task);
-        return NULL;
-    }
-
     lib->tasks[lib->task_count++] = task;
     return task;
 }
-
 
 bool async_remove_task(AsyncLib *lib, AsyncTask *task) {
     if (!lib || !task) return false;
