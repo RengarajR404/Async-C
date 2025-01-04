@@ -1,13 +1,13 @@
 # Compiler settings
-CC = gcc                # Default compiler
-CXX = g++               # C++ compiler (optional)
-CFLAGS = -Wall          # Common flags
-LDFLAGS =               # Linker flags (if any)
+#CC = gcc
+#CXX = g++
+CFLAGS = -Wall
+LDFLAGS =
 
 # Optional: Use clang as the compiler
 # Uncomment to use clang instead of gcc
-# CC = clang
-# CXX = clang++
+CC = clang
+CXX = clang++
 
 # Build types
 DEBUG_FLAGS = -g -O0    # Debug flags
@@ -32,6 +32,9 @@ debug: all
 # Optimized target (to build with optimized flags)
 optimized: CFLAGS += $(OPTIMIZED_FLAGS)
 optimized: all
+
+lib: $(OBJ)
+  ar rcs $(OUTPUT_DIR)/$(LIBRARY) $(OBJ)
 
 # Rule to build the executable
 $(OUTPUT_DIR)/$(EXEC): $(OBJ)
