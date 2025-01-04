@@ -15,8 +15,10 @@ OPTIMIZED_FLAGS = -O3   # Optimized flags for production
 
 # Files
 SRC = $(wildcard *.c)
-OBJ = $(patsubst %.c,$(OUTPUT_DIR)/%.o,$(SRC))
+OBJ = $(patsubst %.c,%.o,$(SRC))
+LIB_OBJ = $(filter-out main.o, $(OBJ))
 EXEC = async_main
+LIBRARY = lib_async_custom
 OUTPUT_DIR = output
 
 # Ensure the output directory exists before compilation
@@ -34,15 +36,15 @@ optimized: CFLAGS += $(OPTIMIZED_FLAGS)
 optimized: all
 
 lib: $(OBJ)
-  ar rcs $(OUTPUT_DIR)/$(LIBRARY) $(OBJ)
+	ar rcs $(OUTPUT_DIR)/$(LIBRARY) $(LIB_OBJ)
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # Rule to build the executable
 $(OUTPUT_DIR)/$(EXEC): $(OBJ)
 	$(CC) $(OBJ) -o $@ $(LDFLAGS)
 
-# Rule to compile .c files into .o files in the output folder
-$(OUTPUT_DIR)/%.o: %.c | $(OUTPUT_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+
 
 # Ensure the output directory exists before compiling object files
 $(OUTPUT_DIR):
@@ -50,7 +52,7 @@ $(OUTPUT_DIR):
 
 # Clean up the build
 clean:
-	rm -f $(OUTPUT_DIR)/*.o $(OUTPUT_DIR)/$(EXEC)
+	rm -f *.o $(OUTPUT_DIR)/$(EXEC)
 
 # Remove all build artifacts (including .o files and executable)
 distclean: clean
