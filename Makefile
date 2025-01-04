@@ -14,10 +14,10 @@ DEBUG_FLAGS = -g -O0    # Debug flags
 OPTIMIZED_FLAGS = -O3   # Optimized flags for production
 
 # Files
-SRC = $(wildcard *.c)    # All .c files in the current directory
-OBJ = $(patsubst %.c,$(OUTPUT_DIR)/%.o,$(SRC))  # .o files in the output directory
-EXEC = async_main        # Output executable
-OUTPUT_DIR = output      # Directory to store the executable and object files
+SRC = $(wildcard *.c)
+OBJ = $(patsubst %.c,$(OUTPUT_DIR)/%.o,$(SRC))
+EXEC = async_main
+OUTPUT_DIR = output
 
 # Ensure the output directory exists before compilation
 $(shell mkdir -p $(OUTPUT_DIR))
